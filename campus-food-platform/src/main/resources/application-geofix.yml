@@ -1,0 +1,7 @@
+amap:
+  key: bc8a0abeba7621e7558d042c7bdf0b58
+
+# 修正完坐标后自动退出
+spring:
+  main:
+    web-application-type: none

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.campus.foodplatform.mapper.NoteMapper">
+
+    <select id="selectList" resultType="Note">
+        SELECT * FROM note
+        <where>
+            <if test="shopId != null">AND shop_id = #{shopId}</if>
+            <if test="userId != null">AND user_id = #{userId}</if>
+            <if test="status != null">AND status = #{status}</if>
+            <if test="keyword != null and keyword != ''">
+                AND (title LIKE CONCAT('%',#{keyword},'%') OR content LIKE CONCAT('%',#{keyword},'%'))
+            </if>
+        </where>
+        ORDER BY created_at DESC
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <select id="countList" resultType="long">
+        SELECT COUNT(*) FROM note
+        <where>
+            <if test="shopId != null">AND shop_id = #{shopId}</if>
+            <if test="userId != null">AND user_id = #{userId}</if>
+            <if test="status != null">AND status = #{status}</if>
+            <if test="keyword != null and keyword != ''">
+                AND (title LIKE CONCAT('%',#{keyword},'%') OR content LIKE CONCAT('%',#{keyword},'%'))
+            </if>
+        </where>
+    </select>
+
+</mapper>

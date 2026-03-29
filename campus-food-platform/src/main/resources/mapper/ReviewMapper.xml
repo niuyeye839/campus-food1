@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.campus.foodplatform.mapper.ReviewMapper">
+
+    <select id="selectPendingList" resultType="Review">
+        SELECT * FROM review WHERE status = 0 ORDER BY created_at ASC LIMIT #{offset}, #{size}
+    </select>
+
+    <select id="countPending" resultType="long">
+        SELECT COUNT(*) FROM review WHERE status = 0
+    </select>
+
+</mapper>

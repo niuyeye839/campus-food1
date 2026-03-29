@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.campus.foodplatform.mapper.ShopMapper">
+
+    <select id="selectList" resultType="Shop">
+        SELECT * FROM shop
+        <where>
+            status = 0
+            <if test="q.keyword != null and q.keyword != ''">
+                AND (name LIKE CONCAT('%',#{q.keyword},'%') OR description LIKE CONCAT('%',#{q.keyword},'%'))
+            </if>
+            <if test="q.category != null and q.category != ''">
+                AND category = #{q.category}
+            </if>
+            <if test="q.minScore != null">
+                AND score >= #{q.minScore}
+            </if>
+            <if test="q.studentDiscount != null">
+                AND student_discount = #{q.studentDiscount}
+            </if>
+        </where>
+        <choose>
+            <when test="q.sortBy == 'score'">ORDER BY score DESC</when>
+            <when test="q.sortBy == 'hot'">ORDER BY like_count DESC, review_count DESC</when>
+            <when test="q.sortBy == 'distance' and q.longitude != null and q.latitude != null">
+                ORDER BY ST_Distance_Sphere(POINT(longitude, latitude), POINT(#{q.longitude}, #{q.latitude})) ASC
+            </when>
+            <otherwise>ORDER BY created_at DESC</otherwise>
+        </choose>
+        LIMIT #{offset}, #{q.size}
+    </select>
+
+    <select id="countList" resultType="long">
+        SELECT COUNT(*) FROM shop
+        <where>
+            status = 0
+            <if test="q.keyword != null and q.keyword != ''">
+                AND (name LIKE CONCAT('%',#{q.keyword},'%') OR description LIKE CONCAT('%',#{q.keyword},'%'))
+            </if>
+            <if test="q.category != null and q.category != ''">
+                AND category = #{q.category}
+            </if>
+            <if test="q.minScore != null">
+                AND score >= #{q.minScore}
+            </if>
+            <if test="q.studentDiscount != null">
+                AND student_discount = #{q.studentDiscount}
+            </if>
+        </where>
+    </select>
+
+</mapper>

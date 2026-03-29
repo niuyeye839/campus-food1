@@ -1,0 +1,56 @@
+# Spring Boot 应用配置，包含数据库、Redis、JWT 和文件上传等参数
+spring:
+  application:
+    name: campus-food-platform
+
+  servlet:
+    multipart:
+      max-file-size: 200MB
+      max-request-size: 210MB
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/food_platform?useUnicode=true&characterEncoding=utf8
+    username: root
+    password: 1234
+    driver-class-name: com.mysql.jdbc.Driver
+
+  redis:
+      host: localhost
+      port: 6379
+      database: 0
+      timeout: 10000
+
+  mail:
+    host: smtp.qq.com
+    port: 587
+    username: your_email@qq.com
+    password: your_smtp_password
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
+server:
+  port: 8080
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.campus.foodplatform.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+jwt:
+  secret: campus-food-platform-secret-key-2024-very-long-string
+  expiration: 86400000   # 24h
+  refresh-expiration: 604800000  # 7d
+
+amap:
+  key: bc8a0abeba7621e7558d042c7bdf0b58
+
+app:
+  upload:
+    path: ./uploads/
+  ai:
+    doubao-api-key: e6cf68ce-5b14-4e66-936b-a8d5048c7eaa
+    doubao-api-url: https://ark.cn-beijing.volces.com/api/v3/responses
+    doubao-model: doubao-seed-1-8-251228
