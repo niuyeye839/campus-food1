@@ -188,7 +188,7 @@ onMounted(async () => {
         <!-- 用户管理 -->
         <el-tab-pane label="用户管理" name="users">
           <div style="display:flex;gap:12px;margin-bottom:16px">
-            <el-input v-model="userQuery.keyword" placeholder="搜索学号/姓名" clearable style="width:220px" />
+            <el-input v-model="userQuery.keyword" placeholder="搜索电话/邮箱/姓名" clearable style="width:220px" />
             <el-select v-model="userQuery.status" placeholder="状态" clearable style="width:120px">
               <el-option label="正常" :value="0" />
               <el-option label="禁用" :value="1" />
@@ -196,8 +196,9 @@ onMounted(async () => {
             <el-button type="primary" @click="fetchUsers">搜索</el-button>
           </div>
           <el-table :data="users" v-loading="userLoading">
-            <el-table-column prop="studentId" label="学号" />
-            <el-table-column prop="realName" label="姓名" />
+            <el-table-column prop="phone" label="电话号码" width="120" />
+            <el-table-column prop="email" label="邮箱" width="200" />
+            <el-table-column prop="realName" label="姓名" width="100" />
             <el-table-column prop="role" label="角色" width="100">
               <template #default="{ row }">
                 <el-tag :type="row.role === 'ADMIN' ? 'danger' : 'primary'">{{ row.role }}</el-tag>
@@ -210,9 +211,15 @@ onMounted(async () => {
             </el-table-column>
             <el-table-column label="操作" width="120">
               <template #default="{ row }">
-                <el-button size="small" :type="row.status === 0 ? 'danger' : 'success'" @click="toggleUserStatus(row)">
+                <el-button 
+                  v-if="row.role !== 'ADMIN'" 
+                  size="small" 
+                  :type="row.status === 0 ? 'danger' : 'success'" 
+                  @click="toggleUserStatus(row)"
+                >
                   {{ row.status === 0 ? '禁用' : '启用' }}
                 </el-button>
+                <span v-else style="color:#999">不可操作</span>
               </template>
             </el-table-column>
           </el-table>

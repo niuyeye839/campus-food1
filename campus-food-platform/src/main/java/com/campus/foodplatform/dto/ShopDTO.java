@@ -8,6 +8,8 @@ import java.math.BigDecimal;
 
 @Data
 public class ShopDTO {
+    private Long merchantId;
+    
     @NotBlank(message = "店铺名称不能为空")
     private String name;
 

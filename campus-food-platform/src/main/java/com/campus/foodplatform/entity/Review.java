@@ -22,4 +22,11 @@ public class Review {
     private String merchantReply;
     /** 商家回复时间 */
     private LocalDateTime merchantReplyTime;
+    
+    /** 用户名（关联查询） */
+    private String username;
+    /** 真实姓名（关联查询） */
+    private String realName;
+    /** 用户头像（关联查询） */
+    private String avatar;
 }

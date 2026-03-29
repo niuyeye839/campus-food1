@@ -48,6 +48,13 @@ public class ShopController {
         return Result.success(shopService.create(dto));
     }
 
+    @GetMapping("/my")
+    public Result<Shop> myShop() {
+        Long merchantId = com.campus.foodplatform.common.UserContext.getUserId();
+        Shop shop = shopService.getByMerchantId(merchantId);
+        return Result.success(shop);
+    }
+
     @PutMapping("/{id}")
     public Result<Shop> update(@PathVariable Long id, @Valid @RequestBody ShopDTO dto) {
         return Result.success(shopService.update(id, dto));

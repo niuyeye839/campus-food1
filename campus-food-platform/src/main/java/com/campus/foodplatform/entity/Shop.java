@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 @Data
 public class Shop {
     private Long id;
+    private Long merchantId;
     private String name;
     private String category;
     private String address;

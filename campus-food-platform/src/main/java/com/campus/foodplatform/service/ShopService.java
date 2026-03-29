@@ -29,6 +29,10 @@ public class ShopService {
         return shop;
     }
 
+    public Shop getByMerchantId(Long merchantId) {
+        return shopMapper.selectByMerchantId(merchantId);
+    }
+
     public PageResult<Shop> list(ShopQueryDTO query) {
         int offset = (query.getPage() - 1) * query.getSize();
         List<Shop> list = shopMapper.selectList(query, offset);
@@ -37,8 +41,17 @@ public class ShopService {
     }
 
     public Shop create(ShopDTO dto) {
+        Long merchantId = com.campus.foodplatform.common.UserContext.getUserId();
+        
+        // 检查商家是否已有店铺
+        Shop existingShop = shopMapper.selectByMerchantId(merchantId);
+        if (existingShop != null) {
+            throw new BusinessException("您已经创建过店铺，请直接编辑");
+        }
+        
         Shop shop = new Shop();
         copyDtoToShop(dto, shop);
+        shop.setMerchantId(merchantId);
         shopMapper.insert(shop);
         return shop;
     }

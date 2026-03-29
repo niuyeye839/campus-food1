@@ -21,14 +21,19 @@ public class AuthService {
 
     private final UserMapper userMapper;
     private final JwtUtil jwtUtil;
+    private final FavoriteFolderService folderService;
 
     public Map<String, Object> register(RegisterDTO dto) {
-        if (userMapper.selectByStudentId(dto.getStudentId()) != null) {
-            throw new BusinessException("账号已被注册");
+        if (userMapper.selectByPhone(dto.getPhone()) != null) {
+            throw new BusinessException("电话号码已被注册");
+        }
+        if (userMapper.selectByEmail(dto.getEmail()) != null) {
+            throw new BusinessException("邮箱已被注册");
         }
 
         User user = new User();
-        user.setStudentId(dto.getStudentId());
+        user.setPhone(dto.getPhone());
+        user.setEmail(dto.getEmail());
         user.setRealName(dto.getRealName());
         user.setUsername(dto.getRealName()); // 用姓名作为显示名
         user.setPassword(BCrypt.hashpw(dto.getPassword()));
@@ -36,11 +41,17 @@ public class AuthService {
         user.setStatus(0);
         userMapper.insert(user);
 
+        // 创建默认收藏夹
+        folderService.getOrCreateDefault(user.getId());
+
         return buildTokenResult(user);
     }
 
     public Map<String, Object> login(LoginDTO dto) {
-        User user = userMapper.selectByStudentId(dto.getAccount());
+        User user = userMapper.selectByPhone(dto.getAccount());
+        if (user == null) {
+            user = userMapper.selectByEmail(dto.getAccount());
+        }
         if (user == null) {
             user = userMapper.selectByUsername(dto.getAccount());
         }
@@ -57,9 +68,9 @@ public class AuthService {
     }
 
     public void resetPassword(ResetPasswordDTO dto) {
-        User user = userMapper.selectByStudentId(dto.getEmail()); // email字段复用为studentId
+        User user = userMapper.selectByEmail(dto.getEmail());
         if (user == null)
-            throw new BusinessException("学号未注册");
+            throw new BusinessException("邮箱未注册");
         userMapper.updatePassword(user.getId(), BCrypt.hashpw(dto.getNewPassword()));
     }
 

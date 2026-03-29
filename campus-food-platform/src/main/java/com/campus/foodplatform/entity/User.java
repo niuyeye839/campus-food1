@@ -7,16 +7,16 @@ import java.time.LocalDateTime;
 @Data
 public class User {
     private Long id;
-    /** 学号（用于登录） */
-    private String studentId;
     /** 真实姓名 */
     private String realName;
     private String username;
     private String password;
+    /** 邮箱 */
     private String email;
+    /** 电话号码（账号） */
     private String phone;
     private String avatar;
-    /** USER / ADMIN */
+    /** USER / ADMIN / MERCHANT */
     private String role;
     /** 0-正常 1-禁用 */
     private Integer status;

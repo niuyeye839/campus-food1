@@ -7,7 +7,7 @@
         SELECT * FROM `user`
         <where>
             <if test="keyword != null and keyword != ''">
-                AND (username LIKE CONCAT('%',#{keyword},'%') OR email LIKE CONCAT('%',#{keyword},'%') OR student_id LIKE CONCAT('%',#{keyword},'%'))
+                AND (username LIKE CONCAT('%',#{keyword},'%') OR email LIKE CONCAT('%',#{keyword},'%') OR phone LIKE CONCAT('%',#{keyword},'%'))
             </if>
             <if test="status != null">
                 AND `status` = #{status}
@@ -21,7 +21,7 @@
         SELECT COUNT(*) FROM `user`
         <where>
             <if test="keyword != null and keyword != ''">
-                AND (username LIKE CONCAT('%',#{keyword},'%') OR email LIKE CONCAT('%',#{keyword},'%') OR student_id LIKE CONCAT('%',#{keyword},'%'))
+                AND (username LIKE CONCAT('%',#{keyword},'%') OR email LIKE CONCAT('%',#{keyword},'%') OR phone LIKE CONCAT('%',#{keyword},'%'))
             </if>
             <if test="status != null">
                 AND `status` = #{status}

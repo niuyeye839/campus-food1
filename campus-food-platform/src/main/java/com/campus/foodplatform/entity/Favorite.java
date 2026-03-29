@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 public class Favorite {
     private Long id;
     private Long userId;
+    private Long folderId;
     /** SHOP / NOTE */
     private String targetType;
     private Long targetId;

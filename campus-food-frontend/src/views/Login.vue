@@ -25,6 +25,9 @@ async function handleLogin() {
     } else {
       router.push('/')
     }
+  } catch (error) {
+    console.error('登录失败:', error)
+    ElMessage.error(error.message || '登录失败，请重试')
   } finally {
     loading.value = false
   }
@@ -44,7 +47,7 @@ async function handleLogin() {
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-input v-model="form.account" placeholder="用户名/邮箱" prefix-icon="User" size="large" />
+          <el-input v-model="form.account" placeholder="电话号码/邮箱/用户名" prefix-icon="User" size="large" />
         </el-form-item>
         <el-form-item>
           <el-input v-model="form.password" type="password" placeholder="密码" prefix-icon="Lock" size="large" show-password />

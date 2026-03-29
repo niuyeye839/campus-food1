@@ -1,4 +1,4 @@
-<!-- 注册页，提供学号、姓名和密码注册表单 -->
+<!-- 注册页，提供电话号码、邮箱、姓名和密码注册表单 -->
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -8,12 +8,23 @@ import { ElMessage } from 'element-plus'
 
 const router = useRouter()
 const userStore = useUserStore()
-const form = ref({ studentId: '', creditCode: '', realName: '', password: '', confirmPassword: '', role: 'USER' })
+const form = ref({ 
+  phone: '', 
+  email: '', 
+  creditCode: '', 
+  realName: '', 
+  password: '', 
+  confirmPassword: '', 
+  role: 'USER' 
+})
 const loading = ref(false)
 
 async function handleRegister() {
-  if (form.value.role === 'USER' && !form.value.studentId) {
-    return ElMessage.warning('请填写学号')
+  if (!form.value.phone) {
+    return ElMessage.warning('请填写电话号码')
+  }
+  if (!form.value.email) {
+    return ElMessage.warning('请填写邮箱')
   }
   if (form.value.role === 'MERCHANT' && !form.value.creditCode) {
     return ElMessage.warning('请填写统一社会信用代码')
@@ -24,10 +35,12 @@ async function handleRegister() {
   if (form.value.password !== form.value.confirmPassword) {
     return ElMessage.error('两次密码不一致')
   }
+  
   loading.value = true
   try {
     const res = await auth.register({
-      studentId: form.value.role === 'USER' ? form.value.studentId : form.value.creditCode,
+      phone: form.value.phone,
+      email: form.value.email,
       realName: form.value.realName,
       password: form.value.password,
       role: form.value.role
@@ -53,23 +66,79 @@ async function handleRegister() {
             <el-option label="商家" value="MERCHANT" />
           </el-select>
         </el-form-item>
-        <el-form-item v-if="form.role === 'USER'">
-          <el-input v-model="form.studentId" placeholder="学号" prefix-icon="User" size="large" />
+        
+        <el-form-item>
+          <el-input 
+            v-model="form.phone" 
+            placeholder="电话号码（账号）" 
+            prefix-icon="Phone" 
+            size="large" 
+            maxlength="11"
+          />
         </el-form-item>
+        
+        <el-form-item>
+          <el-input 
+            v-model="form.email" 
+            placeholder="邮箱" 
+            prefix-icon="Message" 
+            size="large" 
+            type="email"
+          />
+        </el-form-item>
+        
         <el-form-item v-if="form.role === 'MERCHANT'">
-          <el-input v-model="form.creditCode" placeholder="统一社会信用代码（18位）" prefix-icon="Document" size="large" />
+          <el-input 
+            v-model="form.creditCode" 
+            placeholder="统一社会信用代码（18位）" 
+            prefix-icon="Document" 
+            size="large" 
+            maxlength="18"
+          />
         </el-form-item>
+        
         <el-form-item>
-          <el-input v-model="form.realName" placeholder="姓名" prefix-icon="UserFilled" size="large" />
+          <el-input 
+            v-model="form.realName" 
+            placeholder="姓名" 
+            prefix-icon="UserFilled" 
+            size="large" 
+          />
         </el-form-item>
+        
         <el-form-item>
-          <el-input v-model="form.password" type="password" placeholder="密码（6-20位）" prefix-icon="Lock" size="large" show-password />
+          <el-input 
+            v-model="form.password" 
+            type="password" 
+            placeholder="密码（6-20位）" 
+            prefix-icon="Lock" 
+            size="large" 
+            show-password 
+          />
         </el-form-item>
+        
         <el-form-item>
-          <el-input v-model="form.confirmPassword" type="password" placeholder="确认密码" prefix-icon="Lock" size="large" show-password />
+          <el-input 
+            v-model="form.confirmPassword" 
+            type="password" 
+            placeholder="确认密码" 
+            prefix-icon="Lock" 
+            size="large" 
+            show-password 
+          />
         </el-form-item>
-        <el-button type="primary" native-type="submit" :loading="loading" size="large" style="width:100%">注册</el-button>
+        
+        <el-button 
+          type="primary" 
+          native-type="submit" 
+          :loading="loading" 
+          size="large" 
+          style="width:100%"
+        >
+          注册
+        </el-button>
       </el-form>
+      
       <div style="text-align:center;margin-top:16px">
         <el-link @click="router.push('/login')">已有账号？去登录</el-link>
       </div>
@@ -78,6 +147,15 @@ async function handleRegister() {
 </template>
 
 <style scoped>
-.register-page { display:flex; justify-content:center; align-items:center; min-height:80vh; }
-.register-card { width:420px; padding:20px; }
+.register-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+}
+
+.register-card {
+  width: 420px;
+  padding: 20px;
+}
 </style>

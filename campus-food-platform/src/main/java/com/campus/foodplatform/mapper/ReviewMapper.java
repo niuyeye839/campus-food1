@@ -9,18 +9,43 @@ import java.util.Map;
 @Mapper
 public interface ReviewMapper {
         @Insert("INSERT INTO review(user_id,shop_id,rating,content,images,like_count,status,created_at,updated_at) " +
-                        "VALUES(#{userId},#{shopId},#{rating},#{content},#{images},0,1,NOW(),NOW())")
+                        "VALUES(#{userId},#{shopId},#{rating},#{content},#{images},0,0,NOW(),NOW())")
         @Options(useGeneratedKeys = true, keyProperty = "id")
         int insert(Review review);
 
         @Select("SELECT * FROM review WHERE id=#{id}")
         Review selectById(Long id);
 
-        @Select("SELECT * FROM review WHERE shop_id=#{shopId} AND status=1 ORDER BY created_at DESC LIMIT #{offset},#{size}")
+        @Select("SELECT r.*, u.username, u.avatar, u.real_name " +
+                "FROM review r " +
+                "INNER JOIN user u ON r.user_id = u.id " +
+                "WHERE r.shop_id=#{shopId} " +
+                "ORDER BY r.created_at DESC LIMIT #{offset},#{size}")
         List<Review> selectByShopId(@Param("shopId") Long shopId, @Param("offset") int offset, @Param("size") int size);
 
-        @Select("SELECT COUNT(*) FROM review WHERE shop_id=#{shopId} AND status=1")
+        @Select("SELECT COUNT(*) FROM review WHERE shop_id=#{shopId}")
         long countByShopId(Long shopId);
+
+        @Select("SELECT r.*, u.username, u.avatar, u.real_name " +
+                "FROM review r " +
+                "INNER JOIN user u ON r.user_id = u.id " +
+                "WHERE r.shop_id=#{shopId} AND r.status=1 " +
+                "ORDER BY r.created_at DESC LIMIT #{offset},#{size}")
+        List<Review> selectPublishedByShopId(@Param("shopId") Long shopId, @Param("offset") int offset, @Param("size") int size);
+
+        @Select("SELECT COUNT(*) FROM review WHERE shop_id=#{shopId} AND status=1")
+        long countPublishedByShopId(Long shopId);
+
+        @Select("SELECT r.*, u.username, u.avatar, u.real_name " +
+                "FROM review r " +
+                "INNER JOIN user u ON r.user_id = u.id " +
+                "WHERE r.shop_id=#{shopId} AND (r.status=1 OR r.user_id=#{userId}) " +
+                "ORDER BY r.created_at DESC LIMIT #{offset},#{size}")
+        List<Review> selectWithOwnReviews(@Param("shopId") Long shopId, @Param("userId") Long userId,
+                                          @Param("offset") int offset, @Param("size") int size);
+
+        @Select("SELECT COUNT(*) FROM review WHERE shop_id=#{shopId} AND (status=1 OR user_id=#{userId})")
+        long countWithOwnReviews(@Param("shopId") Long shopId, @Param("userId") Long userId);
 
         /** 计算加权评分：评分权重0.7 + 点赞权重0.3 */
         @Select("SELECT AVG(rating)*0.7 + (SUM(like_count)/NULLIF(COUNT(*),0))*0.3 FROM review WHERE shop_id=#{shopId} AND status=1")

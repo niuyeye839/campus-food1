@@ -29,7 +29,6 @@ public class UserController {
     private final UserService userService;
     private final NoteService noteService;
     private final FavoriteService favoriteService;
-    private final FollowService followService;
     private final ShopMapper shopMapper;
 
     @Value("${app.upload.path}")
@@ -59,28 +58,16 @@ public class UserController {
     }
 
     @GetMapping("/favorites/shops")
-    public Result<PageResult<Shop>> favoriteShops(@RequestParam(defaultValue = "1") int page,
+    public Result<PageResult<Shop>> favoriteShops(@RequestParam(required = false) Long folderId,
+            @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
-        return Result.success(favoriteService.getFavoriteShops(UserContext.getUserId(), page, size));
+        return Result.success(favoriteService.getFavoriteShops(UserContext.getUserId(), folderId, page, size));
     }
 
     @GetMapping("/favorites/notes")
-    public Result<PageResult<Note>> favoriteNotes(@RequestParam(defaultValue = "1") int page,
+    public Result<PageResult<Note>> favoriteNotes(@RequestParam(required = false) Long folderId,
+            @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
-        return Result.success(favoriteService.getFavoriteNotes(UserContext.getUserId(), page, size));
-    }
-
-    @GetMapping("/follows/shops")
-    public Result<PageResult<Shop>> followedShops(@RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        List<Long> shopIds = followService.getFollowShopIds(UserContext.getUserId());
-        // 简单实现，后续可以优化为分页查询
-        List<Shop> shops = shopIds.stream().map(shopMapper::selectById).filter(java.util.Objects::nonNull)
-                .collect(Collectors.toList());
-        long total = shops.size();
-        int start = (page - 1) * size;
-        int end = Math.min(start + size, shops.size());
-        List<Shop> pageShops = start >= shops.size() ? java.util.Collections.emptyList() : shops.subList(start, end);
-        return Result.success(PageResult.of(total, pageShops));
+        return Result.success(favoriteService.getFavoriteNotes(UserContext.getUserId(), folderId, page, size));
     }
 }

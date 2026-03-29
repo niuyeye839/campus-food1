@@ -38,6 +38,10 @@ public class AdminController {
     @PutMapping("/users/{id}/status")
     public Result<Void> toggleUserStatus(@PathVariable Long id, @RequestParam Integer status) {
         checkAdmin();
+        User user = userService.getById(id);
+        if ("ADMIN".equals(user.getRole())) {
+            throw new BusinessException("不允许禁用管理员账号");
+        }
         userService.toggleStatus(id, status);
         return Result.success();
     }

@@ -31,6 +31,21 @@ public class ReviewController {
         return Result.success(reviewService.listByShop(shopId, page, size));
     }
 
+    @GetMapping("/shop/{shopId}/published")
+    public Result<PageResult<Review>> listPublishedByShop(@PathVariable Long shopId,
+                                                           @RequestParam(defaultValue = "1") int page,
+                                                           @RequestParam(defaultValue = "10") int size) {
+        return Result.success(reviewService.listPublishedByShop(shopId, page, size));
+    }
+
+    @GetMapping("/shop/{shopId}/with-own")
+    public Result<PageResult<Review>> listWithOwnReviews(@PathVariable Long shopId,
+                                                          @RequestParam(defaultValue = "1") int page,
+                                                          @RequestParam(defaultValue = "10") int size) {
+        Long userId = UserContext.getUserId();
+        return Result.success(reviewService.listWithOwnReviews(shopId, userId, page, size));
+    }
+
     @GetMapping("/pending")
     public Result<PageResult<Review>> pending(@RequestParam(defaultValue = "1") int page,
                                                @RequestParam(defaultValue = "10") int size) {

@@ -7,12 +7,11 @@ USE food_platform;
 -- 用户表
 CREATE TABLE IF NOT EXISTS `user` (
     `id`               BIGINT       NOT NULL AUTO_INCREMENT,
-    `student_id`       VARCHAR(50)  DEFAULT NULL COMMENT '学号',
     `real_name`        VARCHAR(50)  DEFAULT NULL COMMENT '真实姓名',
     `username`         VARCHAR(50)  NOT NULL,
     `password`         VARCHAR(100) NOT NULL,
-    `email`            VARCHAR(100) DEFAULT NULL,
-    `phone`            VARCHAR(20)  DEFAULT NULL,
+    `email`            VARCHAR(100) NOT NULL COMMENT '邮箱',
+    `phone`            VARCHAR(20)  NOT NULL COMMENT '电话号码（账号）',
     `avatar`           VARCHAR(255) DEFAULT NULL,
     `role`             VARCHAR(20)  NOT NULL DEFAULT 'USER' COMMENT 'USER/MERCHANT/ADMIN',
     `status`           TINYINT      NOT NULL DEFAULT 0 COMMENT '0正常 1禁用',
@@ -22,7 +21,7 @@ CREATE TABLE IF NOT EXISTS `user` (
     `updated_at`       DATETIME     NOT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_username` (`username`),
-    UNIQUE KEY `uk_student_id` (`student_id`),
+    UNIQUE KEY `uk_phone` (`phone`),
     UNIQUE KEY `uk_email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 

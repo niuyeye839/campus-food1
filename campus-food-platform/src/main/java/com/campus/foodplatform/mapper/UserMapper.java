@@ -8,16 +8,16 @@ import java.util.List;
 
 @Mapper
 public interface UserMapper {
-    @Insert("INSERT INTO `user`(student_id,real_name,username,password,email,phone,avatar,role,`status`,created_at,updated_at) " +
-            "VALUES(#{studentId},#{realName},#{username},#{password},#{email},#{phone},#{avatar},#{role},#{status},NOW(),NOW())")
+    @Insert("INSERT INTO `user`(real_name,username,password,email,phone,avatar,role,`status`,created_at,updated_at) " +
+            "VALUES(#{realName},#{username},#{password},#{email},#{phone},#{avatar},#{role},#{status},NOW(),NOW())")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(User user);
 
     @Select("SELECT * FROM `user` WHERE id=#{id}")
     User selectById(Long id);
 
-    @Select("SELECT * FROM `user` WHERE student_id=#{studentId}")
-    User selectByStudentId(String studentId);
+    @Select("SELECT * FROM `user` WHERE phone=#{phone}")
+    User selectByPhone(String phone);
 
     @Select("SELECT * FROM `user` WHERE username=#{username}")
     User selectByUsername(String username);
@@ -38,4 +38,7 @@ public interface UserMapper {
                           @Param("offset") int offset, @Param("size") int size);
 
     long countList(@Param("keyword") String keyword, @Param("status") Integer status);
+
+    @Select("SELECT * FROM `user` WHERE role=#{role}")
+    List<User> selectByRole(String role);
 }

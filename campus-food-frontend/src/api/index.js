@@ -15,9 +15,18 @@ export const user = {
   updateProfile: params => request.put('/api/user/profile', null, { params }),
   uploadAvatar: formData => request.post('/api/user/avatar', formData),
   myNotes: (page = 1, size = 10) => request.get('/api/user/notes', { params: { page, size } }),
-  favoriteShops: (page = 1, size = 10) => request.get('/api/user/favorites/shops', { params: { page, size } }),
-  favoriteNotes: (page = 1, size = 10) => request.get('/api/user/favorites/notes', { params: { page, size } }),
-  followedShops: (page = 1, size = 10) => request.get('/api/user/follows/shops', { params: { page, size } })
+  favoriteShops: (folderId = null, page = 1, size = 10) => 
+    request.get('/api/user/favorites/shops', { params: { folderId, page, size } }),
+  favoriteNotes: (folderId = null, page = 1, size = 10) => 
+    request.get('/api/user/favorites/notes', { params: { folderId, page, size } })
+}
+
+// 收藏夹
+export const favoriteFolder = {
+  list: () => request.get('/api/favorite-folders'),
+  create: name => request.post('/api/favorite-folders', null, { params: { name } }),
+  rename: (id, name) => request.put(`/api/favorite-folders/${id}`, null, { params: { name } }),
+  delete: id => request.delete(`/api/favorite-folders/${id}`)
 }
 
 // 店铺
@@ -26,6 +35,7 @@ export const shop = {
   list: params => request.get('/api/shops/list', { params }),
   detail: id => request.get(`/api/shops/${id}`),
   discounts: id => request.get(`/api/shops/${id}/discounts`),
+  myShop: () => request.get('/api/shops/my'),
   create: data => request.post('/api/shops', data),
   update: (id, data) => request.put(`/api/shops/${id}`, data),
   delete: id => request.delete(`/api/shops/${id}`),
@@ -37,6 +47,10 @@ export const review = {
   create: data => request.post('/api/reviews', data),
   listByShop: (shopId, page = 1, size = 10) =>
     request.get(`/api/reviews/shop/${shopId}`, { params: { page, size } }),
+  listPublishedByShop: (shopId, page = 1, size = 10) =>
+    request.get(`/api/reviews/shop/${shopId}/published`, { params: { page, size } }),
+  listWithOwnReviews: (shopId, page = 1, size = 10) =>
+    request.get(`/api/reviews/shop/${shopId}/with-own`, { params: { page, size } }),
   pending: (page = 1, size = 10) => request.get('/api/reviews/pending', { params: { page, size } }),
   adminReview: (id, status) => request.put(`/api/reviews/${id}/review`, null, { params: { status } }),
   merchantReply: (id, content) => request.post(`/api/reviews/${id}/reply`, null, { params: { content } })
@@ -74,8 +88,9 @@ export const comment = {
 // 互动
 export const interact = {
   like: (targetType, targetId) => request.post(`/api/interact/like/${targetType}/${targetId}`),
-  follow: (targetType, targetId) => request.post(`/api/interact/follow/${targetType}/${targetId}`),
-  favorite: (targetType, targetId) => request.post(`/api/interact/favorite/${targetType}/${targetId}`)
+  favorite: (targetType, targetId, folderId = null) => 
+    request.post(`/api/interact/favorite/${targetType}/${targetId}`, null, { params: { folderId } }),
+  isFavorited: (targetType, targetId) => request.get(`/api/interact/favorite/${targetType}/${targetId}`)
 }
 
 // 消息

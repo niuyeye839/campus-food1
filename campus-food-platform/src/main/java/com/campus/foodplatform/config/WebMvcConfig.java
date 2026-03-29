@@ -33,10 +33,11 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .excludePathPatterns(
                         "/api/auth/**",
                         "/api/shops/list",
-                        "/api/shops/{id}",
-                        "/api/shops/top/like",
+                        "/api/shops/top/**",
+                        "/api/shops/[0-9]*",
+                        "/api/shops/[0-9]*/discounts",
                         "/api/notes/list",
-                        "/api/notes/{id}",
+                        "/api/notes/[0-9]*",
                         "/api/discounts/list",
                         "/uploads/**"
                 );

@@ -9,9 +9,9 @@ import java.util.List;
 
 @Mapper
 public interface ShopMapper {
-        @Insert("INSERT INTO shop(name,category,address,latitude,longitude,phone,description,images,business_hours,student_discount,status,created_at,updated_at) "
+        @Insert("INSERT INTO shop(merchant_id,name,category,address,latitude,longitude,phone,description,images,business_hours,student_discount,status,created_at,updated_at) "
                         +
-                        "VALUES(#{name},#{category},#{address},#{latitude},#{longitude},#{phone},#{description},#{images},#{businessHours},#{studentDiscount},0,NOW(),NOW())")
+                        "VALUES(#{merchantId},#{name},#{category},#{address},#{latitude},#{longitude},#{phone},#{description},#{images},#{businessHours},#{studentDiscount},0,NOW(),NOW())")
         @Options(useGeneratedKeys = true, keyProperty = "id")
         int insert(Shop shop);
 
@@ -50,4 +50,7 @@ public interface ShopMapper {
 
         @Update("UPDATE shop SET longitude=#{lng}, latitude=#{lat}, updated_at=NOW() WHERE id=#{id}")
         int updateGeo(@Param("id") Long id, @Param("lng") BigDecimal lng, @Param("lat") BigDecimal lat);
+
+        @Select("SELECT * FROM shop WHERE merchant_id=#{merchantId} ORDER BY id DESC LIMIT 1")
+        Shop selectByMerchantId(@Param("merchantId") Long merchantId);
 }

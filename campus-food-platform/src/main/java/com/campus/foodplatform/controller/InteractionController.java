@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 public class InteractionController {
 
     private final LikeService likeService;
-    private final FollowService followService;
     private final FavoriteService favoriteService;
 
     /** 点赞/取消点赞 targetType: NOTE/REVIEW/COMMENT */
@@ -25,17 +24,18 @@ public class InteractionController {
         return Result.success(liked);
     }
 
-    /** 关注/取消关注 targetType: SHOP/USER */
-    @PostMapping("/follow/{targetType}/{targetId}")
-    public Result<Boolean> follow(@PathVariable String targetType, @PathVariable Long targetId) {
-        boolean followed = followService.toggle(UserContext.getUserId(), targetType.toUpperCase(), targetId);
-        return Result.success(followed);
-    }
-
     /** 收藏/取消收藏 targetType: SHOP/NOTE */
     @PostMapping("/favorite/{targetType}/{targetId}")
-    public Result<Boolean> favorite(@PathVariable String targetType, @PathVariable Long targetId) {
-        boolean favorited = favoriteService.toggle(UserContext.getUserId(), targetType.toUpperCase(), targetId);
+    public Result<Boolean> favorite(@PathVariable String targetType, @PathVariable Long targetId,
+                                    @RequestParam(required = false) Long folderId) {
+        boolean favorited = favoriteService.toggle(UserContext.getUserId(), targetType.toUpperCase(), targetId, folderId);
+        return Result.success(favorited);
+    }
+
+    /** 检查是否已收藏 */
+    @GetMapping("/favorite/{targetType}/{targetId}")
+    public Result<Boolean> isFavorited(@PathVariable String targetType, @PathVariable Long targetId) {
+        boolean favorited = favoriteService.isFavorited(UserContext.getUserId(), targetType.toUpperCase(), targetId);
         return Result.success(favorited);
     }
 }

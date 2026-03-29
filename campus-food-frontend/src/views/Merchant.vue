@@ -57,10 +57,9 @@ const replySubmitting = ref(false)
 async function fetchShop() {
   shopLoading.value = true
   try {
-    // 这里需要根据商家ID获取店铺信息，暂时获取第一个店铺
-    const res = await shopApi.list({ page: 1, size: 1 })
-    if (res.records && res.records.length > 0) {
-      shopData.value = res.records[0]
+    const res = await shopApi.myShop()
+    shopData.value = res
+    if (shopData.value) {
       shopForm.value = {
         name: shopData.value.name,
         category: shopData.value.category,
@@ -71,16 +70,14 @@ async function fetchShop() {
         studentDiscount: shopData.value.studentDiscount || 0
       }
     }
+  } catch (error) {
+    shopData.value = null
   } finally {
     shopLoading.value = false
   }
 }
 
 function openEditShop() {
-  if (!shopData.value) {
-    ElMessage.warning('暂无店铺信息')
-    return
-  }
   shopDialogVisible.value = true
 }
 
@@ -93,13 +90,17 @@ async function submitShop() {
     if (shopData.value) {
       await shopApi.update(shopData.value.id, shopForm.value)
       ElMessage.success('更新成功')
-      await fetchShop()
     } else {
       await shopApi.create(shopForm.value)
-      ElMessage.success('添加成功')
-      await fetchShop()
+      ElMessage.success('创建成功')
     }
     shopDialogVisible.value = false
+    await fetchShop()
+    if (shopData.value) {
+      await fetchReviews()
+    }
+  } catch (error) {
+    ElMessage.error(error.message || '操作失败，请重试')
   } finally {
     shopSubmitting.value = false
   }
@@ -107,17 +108,26 @@ async function submitShop() {
 
 function initCharts() {
   // 初始化评分分布图表
-  if (ratingChartRef.value) {
+  if (ratingChartRef.value && ratingChartRef.value.clientWidth > 0) {
+    if (ratingChart) {
+      ratingChart.dispose()
+    }
     ratingChart = echarts.init(ratingChartRef.value)
   }
   
   // 初始化评价趋势图表
-  if (reviewChartRef.value) {
+  if (reviewChartRef.value && reviewChartRef.value.clientWidth > 0) {
+    if (reviewChart) {
+      reviewChart.dispose()
+    }
     reviewChart = echarts.init(reviewChartRef.value)
   }
   
   // 初始化流量趋势图表
-  if (trafficChartRef.value) {
+  if (trafficChartRef.value && trafficChartRef.value.clientWidth > 0) {
+    if (trafficChart) {
+      trafficChart.dispose()
+    }
     trafficChart = echarts.init(trafficChartRef.value)
   }
   
@@ -239,38 +249,52 @@ function updateCharts() {
 }
 
 async function fetchAnalytics() {
+  if (!shopData.value) return
+  
   analyticsLoading.value = true
   try {
-    // 模拟数据，实际应从后端API获取
+    // 使用真实的店铺数据
     statsData.value = {
-      totalReviews: 128,
-      averageRating: 4.5,
-      positiveRate: 85,
-      monthlyGrowth: 12
+      totalReviews: shopData.value.reviewCount || 0,
+      averageRating: shopData.value.score ? Number(shopData.value.score).toFixed(1) : '0.0',
+      positiveRate: shopData.value.reviewCount > 0 
+        ? Math.round((shopData.value.reviewCount * 0.8)) // 简化计算，实际应该从后端获取
+        : 0,
+      monthlyGrowth: 0
     }
     
-    // 模拟评分分布数据
-    chartData.value.ratingDistribution = [
-      { value: 45, name: '5星' },
-      { value: 35, name: '4星' },
-      { value: 15, name: '3星' },
-      { value: 3, name: '2星' },
-      { value: 2, name: '1星' }
-    ]
-    
-    // 模拟评价趋势数据
-    chartData.value.reviewTrend = {
-      dates: ['1月', '2月', '3月', '4月', '5月', '6月'],
-      counts: [15, 20, 18, 25, 30, 20]
+    // 如果没有评价，显示空数据
+    if (shopData.value.reviewCount === 0) {
+      chartData.value.ratingDistribution = []
+      chartData.value.reviewTrend = {
+        dates: [],
+        counts: []
+      }
+      chartData.value.trafficTrend = {
+        dates: [],
+        views: []
+      }
+    } else {
+      // 有评价时显示模拟数据（实际应该从后端API获取）
+      chartData.value.ratingDistribution = [
+        { value: 45, name: '5星' },
+        { value: 35, name: '4星' },
+        { value: 15, name: '3星' },
+        { value: 3, name: '2星' },
+        { value: 2, name: '1星' }
+      ]
+      
+      chartData.value.reviewTrend = {
+        dates: ['1月', '2月', '3月', '4月', '5月', '6月'],
+        counts: [15, 20, 18, 25, 30, 20]
+      }
+      
+      chartData.value.trafficTrend = {
+        dates: ['1月', '2月', '3月', '4月', '5月', '6月'],
+        views: [120, 150, 130, 180, 200, 160]
+      }
     }
     
-    // 模拟流量趋势数据
-    chartData.value.trafficTrend = {
-      dates: ['1月', '2月', '3月', '4月', '5月', '6月'],
-      views: [120, 150, 130, 180, 200, 160]
-    }
-    
-    // 更新图表
     updateCharts()
   } finally {
     analyticsLoading.value = false
@@ -278,13 +302,21 @@ async function fetchAnalytics() {
 }
 
 async function fetchReviews() {
-  if (!shopData.value) return
+  if (!shopData.value) {
+    console.log('fetchReviews: shopData 为空，跳过')
+    return
+  }
   
+  console.log('fetchReviews: 开始获取评价，shopId:', shopData.value.id, 'page:', reviewPage.value)
   reviewLoading.value = true
   try {
     const res = await reviewApi.listByShop(shopData.value.id, reviewPage.value)
+    console.log('fetchReviews: API 返回结果:', res)
     reviews.value = res.records || []
     reviewTotal.value = res.total || 0
+    console.log('fetchReviews: 评价列表:', reviews.value, '总数:', reviewTotal.value)
+  } catch (error) {
+    console.error('fetchReviews: 获取评价失败:', error)
   } finally {
     reviewLoading.value = false
   }
@@ -325,15 +357,19 @@ async function submitReply() {
 
 onMounted(async () => {
   await fetchShop()
-  await fetchAnalytics()
-  if (shopData.value) {
-    await fetchReviews()
-  }
   
-  // 初始化图表
-  setTimeout(() => {
-    initCharts()
-  }, 100)
+  // 只有在有店铺数据时才初始化图表和获取分析数据
+  if (shopData.value) {
+    await fetchAnalytics()
+    await fetchReviews()
+    
+    // 延迟初始化图表，确保 DOM 已渲染
+    setTimeout(() => {
+      if (activeTab.value === 'analytics') {
+        initCharts()
+      }
+    }, 300)
+  }
   
   // 监听窗口大小变化，重新调整图表大小
   window.addEventListener('resize', () => {
@@ -346,6 +382,15 @@ onMounted(async () => {
   watch(() => route.query.tab, (newTab) => {
     if (newTab && newTab !== activeTab.value) {
       activeTab.value = newTab
+    }
+  })
+  
+  // 监听标签页切换，在切换到数据分析时初始化图表
+  watch(activeTab, (newTab) => {
+    if (newTab === 'analytics' && shopData.value) {
+      setTimeout(() => {
+        initCharts()
+      }, 100)
     }
   })
 })
@@ -361,7 +406,7 @@ onMounted(async () => {
         <el-tab-pane label="店铺基础资料" name="shop">
           <div style="margin-bottom:16px">
             <el-button type="primary" @click="openEditShop">
-              <el-icon><Edit /></el-icon> 编辑店铺资料
+              <el-icon><Edit /></el-icon> {{ shopData ? '编辑店铺资料' : '创建店铺' }}
             </el-button>
           </div>
           
@@ -493,12 +538,27 @@ onMounted(async () => {
             
             <el-table :data="reviews" v-loading="reviewLoading">
               <el-table-column prop="id" label="ID" width="80" />
+              <el-table-column label="用户" width="120">
+                <template #default="{ row }">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <el-avatar :src="row.avatar" :size="32">{{ row.username?.charAt(0) }}</el-avatar>
+                    <span>{{ row.username }}</span>
+                  </div>
+                </template>
+              </el-table-column>
               <el-table-column label="评分" width="120">
                 <template #default="{ row }">
                   <el-rate :model-value="row.rating" disabled size="small" />
                 </template>
               </el-table-column>
               <el-table-column prop="content" label="评价内容" show-overflow-tooltip />
+              <el-table-column label="审核状态" width="100">
+                <template #default="{ row }">
+                  <el-tag v-if="row.status === 0" type="warning" size="small">待审核</el-tag>
+                  <el-tag v-else-if="row.status === 1" type="success" size="small">已发布</el-tag>
+                  <el-tag v-else type="danger" size="small">已拒绝</el-tag>
+                </template>
+              </el-table-column>
               <el-table-column label="商家回复" min-width="200">
                 <template #default="{ row }">
                   <div v-if="row.merchantReply" style="color: #67c23a;">
@@ -516,9 +576,10 @@ onMounted(async () => {
               </el-table-column>
               <el-table-column label="操作" width="120">
                 <template #default="{ row }">
-                  <el-button size="small" :type="row.merchantReply ? 'info' : 'primary'" @click="openReplyDialog(row)">
+                  <el-button v-if="row.status === 1" size="small" :type="row.merchantReply ? 'info' : 'primary'" @click="openReplyDialog(row)">
                     {{ row.merchantReply ? '修改回复' : '回复' }}
                   </el-button>
+                  <el-tag v-else type="info" size="small">待审核</el-tag>
                 </template>
               </el-table-column>
             </el-table>
@@ -578,7 +639,7 @@ onMounted(async () => {
     </el-dialog>
 
     <!-- 编辑店铺弹窗 -->
-    <el-dialog v-model="shopDialogVisible" title="编辑店铺资料" width="560px">
+    <el-dialog v-model="shopDialogVisible" :title="shopData ? '编辑店铺资料' : '创建店铺'" width="560px">
       <el-form :model="shopForm" label-width="90px">
         <el-form-item label="店铺名称">
           <el-input v-model="shopForm.name" placeholder="请输入店铺名称" />

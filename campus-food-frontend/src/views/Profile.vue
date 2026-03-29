@@ -2,7 +2,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { user as userApi, upload as uploadApi, shop as shopApi } from '../api/index'
+import { user as userApi, upload as uploadApi, shop as shopApi, favoriteFolder as folderApi } from '../api/index'
 import { useUserStore } from '../stores/user'
 import { ElMessage } from 'element-plus'
 
@@ -13,8 +13,11 @@ const profileForm = ref({ tastePreference: '', budget: null })
 const myNotes = ref([])
 const favoriteShops = ref([])
 const favoriteNotes = ref([])
-const followedShops = ref([])
+const favoriteFolders = ref([])
+const currentFolderId = ref(null)
 const saving = ref(false)
+const showCreateFolderDialog = ref(false)
+const newFolderName = ref('')
 const myShop = ref(null)
 const myShopLoading = ref(false)
 
@@ -33,15 +36,63 @@ onMounted(async () => {
   if (isMerchant.value) {
     await loadMyShop()
   } else {
-    const [notesRes, fShopsRes, fNotesRes, followedRes] = await Promise.all([
-      userApi.myNotes(), userApi.favoriteShops(), userApi.favoriteNotes(), userApi.followedShops()
+    await loadFolders()
+    const [notesRes, fShopsRes, fNotesRes] = await Promise.all([
+      userApi.myNotes(), 
+      userApi.favoriteShops(currentFolderId.value), 
+      userApi.favoriteNotes(currentFolderId.value)
     ])
     myNotes.value = notesRes.records || []
     favoriteShops.value = fShopsRes.records || []
     favoriteNotes.value = fNotesRes.records || []
-    followedShops.value = followedRes.records || []
   }
 })
+
+async function loadFolders() {
+  favoriteFolders.value = await folderApi.list()
+  if (!currentFolderId.value && favoriteFolders.value.length > 0) {
+    currentFolderId.value = favoriteFolders.value.find(f => f.isDefault)?.id || favoriteFolders.value[0].id
+  }
+}
+
+async function switchFolder(folderId) {
+  currentFolderId.value = folderId
+  const [fShopsRes, fNotesRes] = await Promise.all([
+    userApi.favoriteShops(folderId),
+    userApi.favoriteNotes(folderId)
+  ])
+  favoriteShops.value = fShopsRes.records || []
+  favoriteNotes.value = fNotesRes.records || []
+}
+
+async function createFolder() {
+  if (!newFolderName.value.trim()) {
+    return ElMessage.warning('请输入收藏夹名称')
+  }
+  try {
+    await folderApi.create(newFolderName.value.trim())
+    await loadFolders()
+    newFolderName.value = ''
+    showCreateFolderDialog.value = false
+    ElMessage.success('创建成功')
+  } catch (e) {
+    ElMessage.error('创建失败')
+  }
+}
+
+async function deleteFolder(id) {
+  try {
+    await folderApi.delete(id)
+    await loadFolders()
+    if (currentFolderId.value === id) {
+      currentFolderId.value = favoriteFolders.value[0]?.id
+      await switchFolder(currentFolderId.value)
+    }
+    ElMessage.success('删除成功')
+  } catch (e) {
+    ElMessage.error(e.message || '删除失败')
+  }
+}
 
 async function loadMyShop() {
   myShopLoading.value = true
@@ -151,6 +202,24 @@ async function uploadAvatar(file) {
             </el-tab-pane>
 
             <el-tab-pane label="收藏店铺" name="fshops">
+              <div style="margin-bottom:16px;display:flex;gap:12px;align-items:center">
+                <el-select v-model="currentFolderId" @change="switchFolder" style="width:200px">
+                  <el-option 
+                    v-for="folder in favoriteFolders" 
+                    :key="folder.id" 
+                    :label="`${folder.name} (${folder.count || 0})`" 
+                    :value="folder.id"
+                  />
+                </el-select>
+                <el-button @click="showCreateFolderDialog = true">新建收藏夹</el-button>
+                <el-button 
+                  v-if="favoriteFolders.find(f => f.id === currentFolderId)?.isDefault === 0"
+                  type="danger" 
+                  @click="deleteFolder(currentFolderId)"
+                >
+                  删除当前收藏夹
+                </el-button>
+              </div>
               <div class="item-list">
                 <div v-for="s in favoriteShops" :key="s.id" class="list-item" @click="router.push(`/shops/${s.id}`)">
                   <span class="item-title">{{ s.name }}</span>
@@ -168,20 +237,19 @@ async function uploadAvatar(file) {
                 <el-empty v-if="!favoriteNotes.length" description="暂无收藏" />
               </div>
             </el-tab-pane>
-
-            <el-tab-pane label="已关注店铺" name="follows">
-              <div class="item-list">
-                <div v-for="s in followedShops" :key="s.id" class="list-item" @click="router.push(`/shops/${s.id}`)">
-                  <span class="item-title">{{ s.name }}</span>
-                  <el-tag size="small">{{ s.category }}</el-tag>
-                </div>
-                <el-empty v-if="!followedShops.length" description="暂无关注" />
-              </div>
-            </el-tab-pane>
           </el-tabs>
         </el-card>
       </el-col>
     </el-row>
+
+    <!-- 创建收藏夹对话框 -->
+    <el-dialog v-model="showCreateFolderDialog" title="新建收藏夹" width="400px">
+      <el-input v-model="newFolderName" placeholder="请输入收藏夹名称" maxlength="20" show-word-limit />
+      <template #footer>
+        <el-button @click="showCreateFolderDialog = false">取消</el-button>
+        <el-button type="primary" @click="createFolder">创建</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
