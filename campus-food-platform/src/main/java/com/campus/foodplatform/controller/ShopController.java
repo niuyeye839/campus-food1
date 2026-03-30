@@ -71,4 +71,16 @@ public class ShopController {
         shopService.toggleStatus(id, status);
         return Result.success();
     }
+    
+    @PostMapping("/{id}/discounts")
+    public Result<?> createDiscount(@PathVariable Long id, @RequestBody com.campus.foodplatform.entity.Discount discount) {
+        discount.setShopId(id);
+        return Result.success(discountService.create(discount));
+    }
+    
+    @DeleteMapping("/{id}/discounts/{discountId}")
+    public Result<Void> deleteDiscount(@PathVariable Long id, @PathVariable Long discountId) {
+        discountService.delete(discountId);
+        return Result.success();
+    }
 }

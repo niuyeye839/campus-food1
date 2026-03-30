@@ -2,9 +2,10 @@
 <script setup>
 import { ref, onMounted, computed, onMounted as onMountedHook, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { shop as shopApi, review as reviewApi, admin as adminApi, comment as commentApi } from '../api/index'
+import { shop as shopApi, review as reviewApi, admin as adminApi, comment as commentApi, upload } from '../api/index'
 import { useUserStore } from '../stores/user'
 import { ElMessage } from 'element-plus'
+import { Plus } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
 
 const userStore = useUserStore()
@@ -16,9 +17,15 @@ const activeTab = ref(route.query.tab || 'shop')
 const shopData = ref(null)
 const shopLoading = ref(false)
 const shopDialogVisible = ref(false)
-const shopForm = ref({ name: '', category: '', address: '', phone: '', description: '', businessHours: '', studentDiscount: 0 })
+const shopForm = ref({ name: '', category: '', address: '', phone: '', description: '', businessHours: '', studentDiscount: 0, images: '' })
 const categories = ['快餐', '中餐', '西餐', '小吃', '饮品', '甜品', '火锅', '烧烤']
 const shopSubmitting = ref(false)
+
+// 封面上传
+const coverFile = ref(null)
+const coverPreviewUrl = ref('')
+const coverUploading = ref(false)
+const fileInputRef = ref(null)
 
 // 数据分析
 const analyticsLoading = ref(false)
@@ -54,6 +61,25 @@ const currentReview = ref(null)
 const replyContent = ref('')
 const replySubmitting = ref(false)
 
+// 优惠管理
+const discounts = ref([])
+const discountTotal = ref(0)
+const discountPage = ref(1)
+const discountLoading = ref(false)
+const discountDialogVisible = ref(false)
+const currentDiscount = ref(null)
+const discountForm = ref({
+  title: '',
+  description: '',
+  discountType: 'percentage', // percentage, fixed
+  discountValue: '',
+  startDate: '',
+  endDate: '',
+  minSpend: 0,
+  maxDiscount: 0
+})
+const discountSubmitting = ref(false)
+
 async function fetchShop() {
   shopLoading.value = true
   try {
@@ -67,7 +93,8 @@ async function fetchShop() {
         phone: shopData.value.phone || '',
         description: shopData.value.description || '',
         businessHours: shopData.value.businessHours || '',
-        studentDiscount: shopData.value.studentDiscount || 0
+        studentDiscount: shopData.value.studentDiscount || 0,
+        images: shopData.value?.images || ''
       }
     }
   } catch (error) {
@@ -78,13 +105,71 @@ async function fetchShop() {
 }
 
 function openEditShop() {
+  coverPreviewUrl.value = shopData.value?.images || ''
   shopDialogVisible.value = true
+}
+
+watch(shopDialogVisible, (val) => {
+  if (!val) {
+    coverFile.value = null
+    coverPreviewUrl.value = ''
+  }
+})
+
+function triggerFileInput() {
+  fileInputRef.value.click()
+}
+
+function onFileChange(event) {
+  const file = event.target.files[0]
+  if (!file) return
+
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
+  const allowedExts = /\.(jpg|jpeg|png|webp)$/i
+  if (!allowedTypes.includes(file.type) && !allowedExts.test(file.name)) {
+    ElMessage.error('仅支持 jpg、jpeg、png、webp 格式')
+    return
+  }
+
+  if (file.size > 10 * 1024 * 1024) {
+    ElMessage.error('图片大小不能超过 10MB')
+    event.target.value = ''
+    return
+  }
+
+  coverFile.value = file
+  coverPreviewUrl.value = URL.createObjectURL(file)
+}
+
+async function uploadCover() {
+  const formData = new FormData()
+  formData.append('files', coverFile.value)
+  const res = await upload.media(formData)
+  if (res && res.length > 0) {
+    return res[0]
+  }
+  throw new Error('上传失败')
 }
 
 async function submitShop() {
   if (!shopForm.value.name || !shopForm.value.category || !shopForm.value.address) {
     return ElMessage.warning('请填写店铺名称、分类和地址')
   }
+
+  if (coverFile.value !== null) {
+    coverUploading.value = true
+    try {
+      const url = await uploadCover()
+      shopForm.value.images = url
+    } catch (e) {
+      ElMessage.error('封面图片上传失败，请重试')
+      coverUploading.value = false
+      return
+    } finally {
+      coverUploading.value = false
+    }
+  }
+
   shopSubmitting.value = true
   try {
     if (shopData.value) {
@@ -322,6 +407,67 @@ async function fetchReviews() {
   }
 }
 
+// 优惠管理方法
+async function fetchDiscounts() {
+  if (!shopData.value) return
+  
+  discountLoading.value = true
+  try {
+    const res = await shopApi.discounts(shopData.value.id)
+    discounts.value = res || []
+    discountTotal.value = discounts.value.length
+  } finally {
+    discountLoading.value = false
+  }
+}
+
+function openAddDiscount() {
+  currentDiscount.value = null
+  discountForm.value = {
+    title: '',
+    description: '',
+    discountType: 'percentage',
+    discountValue: '',
+    startDate: '',
+    endDate: '',
+    minSpend: 0,
+    maxDiscount: 0
+  }
+  discountDialogVisible.value = true
+}
+
+async function submitDiscount() {
+  if (!shopData.value) return
+  
+  if (!discountForm.value.title || !discountForm.value.discountValue) {
+    return ElMessage.warning('请填写优惠标题和折扣值')
+  }
+  
+  discountSubmitting.value = true
+  try {
+    await shopApi.createDiscount(shopData.value.id, discountForm.value)
+    ElMessage.success('优惠添加成功')
+    discountDialogVisible.value = false
+    await fetchDiscounts()
+  } catch (error) {
+    ElMessage.error('优惠添加失败，请重试')
+  } finally {
+    discountSubmitting.value = false
+  }
+}
+
+async function deleteDiscount(discountId) {
+  if (!shopData.value) return
+  
+  try {
+    await shopApi.deleteDiscount(shopData.value.id, discountId)
+    ElMessage.success('优惠删除成功')
+    await fetchDiscounts()
+  } catch (error) {
+    ElMessage.error('优惠删除失败，请重试')
+  }
+}
+
 function handleReviewSort() {
   reviewPage.value = 1
   fetchReviews()
@@ -362,6 +508,7 @@ onMounted(async () => {
   if (shopData.value) {
     await fetchAnalytics()
     await fetchReviews()
+    await fetchDiscounts()
     
     // 延迟初始化图表，确保 DOM 已渲染
     setTimeout(() => {
@@ -412,6 +559,9 @@ onMounted(async () => {
           
           <el-card v-loading="shopLoading">
             <template v-if="shopData">
+              <div v-if="shopData.images" class="shop-cover-wrap">
+                <img :src="shopData.images" class="shop-cover-img" alt="店铺封面" />
+              </div>
               <div class="shop-info-item">
                 <span class="label">店铺名称：</span>
                 <span>{{ shopData.name }}</span>
@@ -597,7 +747,50 @@ onMounted(async () => {
 
         <!-- 优惠管理 -->
         <el-tab-pane label="优惠管理" name="discounts">
-          <el-empty description="优惠管理功能开发中" />
+          <el-card>
+            <template #header>
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span>店铺优惠管理</span>
+                <el-button type="primary" @click="openAddDiscount">
+                  <el-icon><Plus /></el-icon> 添加优惠
+                </el-button>
+              </div>
+            </template>
+            
+            <el-table :data="discounts" v-loading="discountLoading">
+              <el-table-column prop="title" label="优惠标题" />
+              <el-table-column label="折扣类型">
+                <template #default="{ row }">
+                  <el-tag :type="row.discountType === 'percentage' ? 'warning' : 'primary'">
+                    {{ row.discountType === 'percentage' ? '百分比折扣' : '固定金额' }}
+                  </el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column label="折扣值">
+                <template #default="{ row }">
+                  {{ row.discountType === 'percentage' ? row.discountValue + '%' : '¥' + row.discountValue }}
+                </template>
+              </el-table-column>
+              <el-table-column prop="description" label="优惠说明" show-overflow-tooltip />
+              <el-table-column label="有效期">
+                <template #default="{ row }">
+                  <div>
+                    <div>{{ row.startDate }}</div>
+                    <div>{{ row.endDate }}</div>
+                  </div>
+                </template>
+              </el-table-column>
+              <el-table-column label="操作" width="120">
+                <template #default="{ row }">
+                  <el-button type="danger" size="small" @click="deleteDiscount(row.id)">
+                    删除
+                  </el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+            
+            <el-empty v-if="!discountLoading && discounts.length === 0" description="暂无优惠信息" />
+          </el-card>
         </el-tab-pane>
 
         <!-- 订单管理 -->
@@ -664,10 +857,66 @@ onMounted(async () => {
         <el-form-item label="学生折扣">
           <el-switch v-model="shopForm.studentDiscount" :active-value="1" :inactive-value="0" />
         </el-form-item>
+        <el-form-item label="封面图片">
+          <div class="cover-uploader" @click="triggerFileInput">
+            <img v-if="coverPreviewUrl" :src="coverPreviewUrl" class="cover-preview" alt="封面预览" />
+            <div v-else class="cover-placeholder">
+              <el-icon :size="32"><Plus /></el-icon>
+              <span>点击上传封面图</span>
+            </div>
+          </div>
+          <input
+            ref="fileInputRef"
+            type="file"
+            accept=".jpg,.jpeg,.png,.webp"
+            style="display:none"
+            @change="onFileChange"
+          />
+        </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="shopDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="shopSubmitting" @click="submitShop">确定</el-button>
+        <el-button type="primary" :loading="shopSubmitting || coverUploading" @click="submitShop">确定</el-button>
+      </template>
+    </el-dialog>
+    
+    <!-- 添加优惠弹窗 -->
+    <el-dialog v-model="discountDialogVisible" title="添加优惠" width="560px">
+      <el-form :model="discountForm" label-width="100px">
+        <el-form-item label="优惠标题">
+          <el-input v-model="discountForm.title" placeholder="请输入优惠标题" />
+        </el-form-item>
+        <el-form-item label="优惠说明">
+          <el-input v-model="discountForm.description" type="textarea" :rows="3" placeholder="请输入优惠说明" />
+        </el-form-item>
+        <el-form-item label="折扣类型">
+          <el-radio-group v-model="discountForm.discountType">
+            <el-radio label="percentage">百分比折扣</el-radio>
+            <el-radio label="fixed">固定金额</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="折扣值">
+          <el-input v-model="discountForm.discountValue" placeholder="请输入折扣值" />
+          <div style="font-size:12px; color:#999; margin-top:4px">
+            {{ discountForm.discountType === 'percentage' ? '请输入百分比，例如：20' : '请输入金额，例如：5' }}
+          </div>
+        </el-form-item>
+        <el-form-item label="开始日期">
+          <el-date-picker v-model="discountForm.startDate" type="date" placeholder="选择开始日期" style="width:100%" />
+        </el-form-item>
+        <el-form-item label="结束日期">
+          <el-date-picker v-model="discountForm.endDate" type="date" placeholder="选择结束日期" style="width:100%" />
+        </el-form-item>
+        <el-form-item label="最低消费">
+          <el-input-number v-model="discountForm.minSpend" :min="0" placeholder="最低消费金额" />
+        </el-form-item>
+        <el-form-item label="最高折扣">
+          <el-input-number v-model="discountForm.maxDiscount" :min="0" placeholder="最高折扣金额" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="discountDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="discountSubmitting" @click="submitDiscount">确定</el-button>
       </template>
     </el-dialog>
   </div>
@@ -692,4 +941,44 @@ onMounted(async () => {
 /* 评价管理样式 */
 .el-table { margin-top: 16px; }
 .el-pagination { margin-top: 16px; }
+
+.cover-uploader {
+  width: 100%;
+  height: 160px;
+  border: 1px dashed #d9d9d9;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #fafafa;
+}
+.cover-uploader:hover {
+  border-color: #409eff;
+}
+.cover-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.cover-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #999;
+  font-size: 14px;
+}
+.shop-cover-wrap {
+  margin-bottom: 16px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.shop-cover-img {
+  width: 100%;
+  max-height: 240px;
+  object-fit: cover;
+  display: block;
+}
 </style>

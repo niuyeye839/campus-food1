@@ -56,7 +56,10 @@ function search() {
     <!-- 店铺列表 -->
     <div v-loading="loading" class="shop-grid">
       <el-card v-for="s in shops" :key="s.id" class="shop-card" @click="router.push(`/shops/${s.id}`)">
-        <div class="shop-img-placeholder">{{ s.category }}</div>
+        <div class="shop-img-placeholder">
+          <img v-if="s.images" :src="s.images" class="shop-cover-img" :alt="s.name" />
+          <span v-else>{{ s.category }}</span>
+        </div>
         <div class="shop-body">
           <div class="shop-name">{{ s.name }}</div>
           <div class="shop-score">
@@ -126,6 +129,13 @@ function search() {
   font-size: 28px;
   border-radius: 4px;
   margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.shop-cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .shop-name {

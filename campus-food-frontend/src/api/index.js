@@ -39,7 +39,10 @@ export const shop = {
   create: data => request.post('/api/shops', data),
   update: (id, data) => request.put(`/api/shops/${id}`, data),
   delete: id => request.delete(`/api/shops/${id}`),
-  toggleStatus: (id, status) => request.put(`/api/shops/${id}/status`, null, { params: { status } })
+  toggleStatus: (id, status) => request.put(`/api/shops/${id}/status`, null, { params: { status } }),
+  // 优惠管理
+  createDiscount: (shopId, data) => request.post(`/api/shops/${shopId}/discounts`, data),
+  deleteDiscount: (shopId, discountId) => request.delete(`/api/shops/${shopId}/discounts/${discountId}`)
 }
 
 // 评价

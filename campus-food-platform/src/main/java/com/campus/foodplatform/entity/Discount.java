@@ -10,6 +10,10 @@ public class Discount {
     private Long shopId;
     private String title;
     private String description;
+    private String discountType; // percentage-百分比, fixed-固定金额
+    private Double discountValue; // 折扣值
+    private Double minSpend; // 最低消费
+    private Double maxDiscount; // 最高折扣
     private String originalUrl;
     private String source;
     private LocalDateTime startTime;
