@@ -97,4 +97,17 @@ public class DiscountService {
             messageMapper.insert(msg);
         }
     }
+    
+    /** 创建优惠 */
+    public Discount create(Discount discount) {
+        discountMapper.insert(discount);
+        // 推送新优惠通知
+        pushNewDiscount(discount);
+        return discount;
+    }
+    
+    /** 删除优惠 */
+    public void delete(Long id) {
+        discountMapper.deleteById(id);
+    }
 }

@@ -7,8 +7,8 @@ import java.util.List;
 
 @Mapper
 public interface DiscountMapper {
-    @Insert("INSERT INTO discount(shop_id,title,description,original_url,source,start_time,end_time,status,created_at) " +
-            "VALUES(#{shopId},#{title},#{description},#{originalUrl},#{source},#{startTime},#{endTime},0,NOW())")
+    @Insert("INSERT INTO discount(shop_id,title,description,discount_type,discount_value,min_spend,max_discount,original_url,source,start_time,end_time,status,created_at) " +
+            "VALUES(#{shopId},#{title},#{description},#{discountType},#{discountValue},#{minSpend},#{maxDiscount},#{originalUrl},#{source},#{startTime},#{endTime},0,NOW())")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(Discount discount);
 
@@ -28,4 +28,8 @@ public interface DiscountMapper {
     /** 查询明天过期的优惠（用于推送提醒） */
     @Select("SELECT * FROM discount WHERE status=0 AND end_time BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 1 DAY)")
     List<Discount> selectExpiringSoon();
+    
+    /** 根据ID删除优惠 */
+    @Delete("DELETE FROM discount WHERE id=#{id}")
+    int deleteById(Long id);
 }
