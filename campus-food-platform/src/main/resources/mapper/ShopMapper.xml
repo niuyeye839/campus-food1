@@ -7,6 +7,7 @@
         SELECT * FROM shop
         <where>
             status = 0
+            AND review_status = 1
             <if test="q.keyword != null and q.keyword != ''">
                 AND (name LIKE CONCAT('%',#{q.keyword},'%') OR description LIKE CONCAT('%',#{q.keyword},'%'))
             </if>
@@ -35,6 +36,7 @@
         SELECT COUNT(*) FROM shop
         <where>
             status = 0
+            AND review_status = 1
             <if test="q.keyword != null and q.keyword != ''">
                 AND (name LIKE CONCAT('%',#{q.keyword},'%') OR description LIKE CONCAT('%',#{q.keyword},'%'))
             </if>

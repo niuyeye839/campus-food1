@@ -9,9 +9,9 @@ import java.util.List;
 
 @Mapper
 public interface ShopMapper {
-        @Insert("INSERT INTO shop(merchant_id,name,category,address,latitude,longitude,phone,description,images,business_hours,student_discount,status,created_at,updated_at) "
+        @Insert("INSERT INTO shop(merchant_id,name,category,address,latitude,longitude,phone,description,images,business_hours,student_discount,review_status,status,created_at,updated_at) "
                         +
-                        "VALUES(#{merchantId},#{name},#{category},#{address},#{latitude},#{longitude},#{phone},#{description},#{images},#{businessHours},#{studentDiscount},0,NOW(),NOW())")
+                        "VALUES(#{merchantId},#{name},#{category},#{address},#{latitude},#{longitude},#{phone},#{description},#{images},#{businessHours},#{studentDiscount},#{reviewStatus},#{status},NOW(),NOW())")
         @Options(useGeneratedKeys = true, keyProperty = "id")
         int insert(Shop shop);
 
@@ -24,11 +24,14 @@ public interface ShopMapper {
 
         @Update("UPDATE shop SET name=#{name},category=#{category},address=#{address},latitude=#{latitude}," +
                         "longitude=#{longitude},phone=#{phone},description=#{description},images=#{images}," +
-                        "business_hours=#{businessHours},student_discount=#{studentDiscount},updated_at=NOW() WHERE id=#{id}")
+                        "business_hours=#{businessHours},student_discount=#{studentDiscount},review_status=#{reviewStatus},review_remark=#{reviewRemark},updated_at=NOW() WHERE id=#{id}")
         int update(Shop shop);
 
         @Update("UPDATE shop SET status=#{status},updated_at=NOW() WHERE id=#{id}")
         int updateStatus(@Param("id") Long id, @Param("status") Integer status);
+
+        @Update("UPDATE shop SET review_status=#{reviewStatus},review_remark=#{reviewRemark},updated_at=NOW() WHERE id=#{id}")
+        int updateReviewStatus(@Param("id") Long id, @Param("reviewStatus") Integer reviewStatus, @Param("reviewRemark") String reviewRemark);
 
         @Update("UPDATE shop SET score=#{score},updated_at=NOW() WHERE id=#{id}")
         int updateScore(@Param("id") Long id, @Param("score") BigDecimal score);
@@ -53,4 +56,10 @@ public interface ShopMapper {
 
         @Select("SELECT * FROM shop WHERE merchant_id=#{merchantId} ORDER BY id DESC LIMIT 1")
         Shop selectByMerchantId(@Param("merchantId") Long merchantId);
+
+        @Select("SELECT * FROM shop WHERE review_status=0 ORDER BY created_at DESC LIMIT #{offset}, #{size}")
+        List<Shop> selectPending(@Param("offset") int offset, @Param("size") int size);
+
+        @Select("SELECT COUNT(*) FROM shop WHERE review_status=0")
+        long countPending();
 }

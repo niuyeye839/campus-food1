@@ -5,16 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e9640914-415f-43a3-aecd-a7475f220192" name="变更" comment="">
-      <change beforePath="$PROJECT_DIR$/campus-food-frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/campus-food-frontend/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/campus-food-frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/campus-food-frontend/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/campus-food-frontend/src/api/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/campus-food-frontend/src/api/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/campus-food-frontend/src/views/Merchant.vue" beforeDir="false" afterPath="$PROJECT_DIR$/campus-food-frontend/src/views/Merchant.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/campus-food-frontend/src/views/ShopList.vue" beforeDir="false" afterPath="$PROJECT_DIR$/campus-food-frontend/src/views/ShopList.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/campus-food-frontend/vite.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/campus-food-frontend/vite.config.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/campus-food-platform/src/main/java/com/campus/foodplatform/controller/ShopController.java" beforeDir="false" afterPath="$PROJECT_DIR$/campus-food-platform/src/main/java/com/campus/foodplatform/controller/ShopController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/campus-food-platform/src/main/java/com/campus/foodplatform/entity/Discount.java" beforeDir="false" afterPath="$PROJECT_DIR$/campus-food-platform/src/main/java/com/campus/foodplatform/entity/Discount.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/campus-food-platform/src/main/java/com/campus/foodplatform/mapper/DiscountMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/campus-food-platform/src/main/java/com/campus/foodplatform/mapper/DiscountMapper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/campus-food-platform/src/main/java/com/campus/foodplatform/service/DiscountService.java" beforeDir="false" afterPath="$PROJECT_DIR$/campus-food-platform/src/main/java/com/campus/foodplatform/service/DiscountService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/campus-food-frontend/src/views/Admin.vue" beforeDir="false" afterPath="$PROJECT_DIR$/campus-food-frontend/src/views/Admin.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/campus-food-platform/src/main/java/com/campus/foodplatform/controller/AdminController.java" beforeDir="false" afterPath="$PROJECT_DIR$/campus-food-platform/src/main/java/com/campus/foodplatform/controller/AdminController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/campus-food-platform/src/main/java/com/campus/foodplatform/entity/Shop.java" beforeDir="false" afterPath="$PROJECT_DIR$/campus-food-platform/src/main/java/com/campus/foodplatform/entity/Shop.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/campus-food-platform/src/main/java/com/campus/foodplatform/mapper/ShopMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/campus-food-platform/src/main/java/com/campus/foodplatform/mapper/ShopMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/campus-food-platform/src/main/java/com/campus/foodplatform/service/ShopService.java" beforeDir="false" afterPath="$PROJECT_DIR$/campus-food-platform/src/main/java/com/campus/foodplatform/service/ShopService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/campus-food-platform/src/main/resources/mapper/ShopMapper.xml" beforeDir="false" afterPath="$PROJECT_DIR$/campus-food-platform/src/main/resources/mapper/ShopMapper.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -56,7 +54,9 @@
     &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
     &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
     &quot;last_opened_file_path&quot;: &quot;D:/code/campus-food1&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;MavenSettings&quot;
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;MavenSettings&quot;,
+    &quot;spring.configuration.checksum&quot;: &quot;fdb19615ee3ddd366edd63bb3a61bc39&quot;
   }
 }</component>
   <component name="RunManager">
@@ -77,6 +77,9 @@
       <option name="presentableId" value="Default" />
       <updated>1774789633321</updated>
       <workItem from="1774789634774" duration="9154000" />
+      <workItem from="1774842835553" duration="1320000" />
+      <workItem from="1774927945491" duration="1255000" />
+      <workItem from="1774929437637" duration="1302000" />
     </task>
     <servers />
   </component>

@@ -52,6 +52,9 @@ public class ShopService {
         Shop shop = new Shop();
         copyDtoToShop(dto, shop);
         shop.setMerchantId(merchantId);
+        // 新建店铺默认进入待审核，且下线状态
+        shop.setReviewStatus(0);
+        shop.setStatus(1);
         shopMapper.insert(shop);
         return shop;
     }
@@ -62,6 +65,8 @@ public class ShopService {
             throw new BusinessException("店铺不存在");
         copyDtoToShop(dto, shop);
         shop.setId(id);
+        // 商家修改店铺信息后重新进入待审核
+        shop.setReviewStatus(0);
         shopMapper.update(shop);
         return shop;
     }
@@ -72,6 +77,29 @@ public class ShopService {
 
     public void toggleStatus(Long id, Integer status) {
         shopMapper.updateStatus(id, status);
+    }
+
+    public PageResult<Shop> adminPendingList(int page, int size) {
+        int offset = (page - 1) * size;
+        List<Shop> list = shopMapper.selectPending(offset, size);
+        long total = shopMapper.countPending();
+        return PageResult.of(total, list);
+    }
+
+    public void review(Long id, Integer reviewStatus, String reviewRemark) {
+        Shop shop = shopMapper.selectById(id);
+        if (shop == null) {
+            throw new BusinessException("店铺不存在");
+        }
+        // 只有待审核的店铺允许审核
+        if (shop.getReviewStatus() != null && shop.getReviewStatus() != 0) {
+            throw new BusinessException("该店铺已审核，请勿重复操作");
+        }
+        // 审核通过时默认上线
+        if (reviewStatus != null && reviewStatus == 1) {
+            shopMapper.updateStatus(id, 0);
+        }
+        shopMapper.updateReviewStatus(id, reviewStatus, reviewRemark);
     }
 
     private void copyDtoToShop(ShopDTO dto, Shop shop) {

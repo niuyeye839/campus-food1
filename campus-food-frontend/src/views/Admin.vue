@@ -73,6 +73,29 @@ async function toggleShopStatus(row) {
   ElMessage.success('操作成功')
 }
 
+// 店铺审核
+const pendingShops = ref([])
+const pendingShopTotal = ref(0)
+const pendingShopPage = ref(1)
+const pendingShopLoading = ref(false)
+
+async function fetchPendingShops() {
+  pendingShopLoading.value = true
+  try {
+    const res = await adminApi.pendingShops(pendingShopPage.value, 10)
+    pendingShops.value = res.records || []
+    pendingShopTotal.value = res.total || 0
+  } finally {
+    pendingShopLoading.value = false
+  }
+}
+
+async function reviewShop(id, status) {
+  await adminApi.reviewShop(id, status)
+  ElMessage.success(status === 1 ? '已通过' : '已拒绝')
+  await fetchPendingShops()
+  await fetchShops()
+}
 // 用户管理
 const users = ref([])
 const userTotal = ref(0)
@@ -128,6 +151,7 @@ onMounted(async () => {
   await fetchUsers()
   await fetchPendingReviews()
   await fetchPendingNotes()
+  await fetchPendingShops()
 })
 </script>
 
@@ -183,6 +207,37 @@ onMounted(async () => {
             @current-change="fetchShops"
             style="margin-top:16px;justify-content:center;display:flex"
           />
+        </el-tab-pane>
+
+        <!-- 店铺审核 -->
+        <el-tab-pane :label="`店铺审核(${pendingShops.length})`" name="shopReview">
+          <el-table :data="pendingShops" v-loading="pendingShopLoading">
+            <el-table-column prop="id" label="ID" width="60" />
+            <el-table-column prop="name" label="店铺名称" />
+            <el-table-column prop="category" label="分类" width="80" />
+            <el-table-column prop="address" label="地址" show-overflow-tooltip />
+            <el-table-column prop="merchantId" label="商家ID" width="100" />
+            <el-table-column prop="createdAt" label="提交时间" width="180">
+              <template #default="{ row }">
+                {{ row.createdAt?.slice(0, 19) }}
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" width="200">
+              <template #default="{ row }">
+                <el-button size="small" type="success" @click="reviewShop(row.id, 1)">通过</el-button>
+                <el-button size="small" type="danger" @click="reviewShop(row.id, 2)">拒绝</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+          <el-pagination
+            v-model:current-page="pendingShopPage"
+            :page-size="10"
+            :total="pendingShopTotal"
+            layout="prev, pager, next"
+            @current-change="fetchPendingShops"
+            style="margin-top:16px;justify-content:center;display:flex"
+          />
+          <el-empty v-if="!pendingShopLoading && !pendingShops.length" description="暂无待审核店铺" />
         </el-tab-pane>
 
         <!-- 用户管理 -->

@@ -26,8 +26,16 @@ public class Shop {
     private Integer reviewCount;
     /** 是否有学生折扣 */
     private Integer studentDiscount;
+    /**
+     * 审核状态：0-待审核 1-通过 2-拒绝
+     */
+    private Integer reviewStatus;
     /** 0-正常 1-下线 */
     private Integer status;
+    /**
+     * 审核备注（可选）
+     */
+    private String reviewRemark;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

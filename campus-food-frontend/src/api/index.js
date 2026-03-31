@@ -129,5 +129,8 @@ export const discount = {
 export const admin = {
   users: params => request.get('/api/admin/users', { params }),
   toggleUserStatus: (id, status) => request.put(`/api/admin/users/${id}/status`, null, { params: { status } }),
-  stats: () => request.get('/api/admin/stats')
+  stats: () => request.get('/api/admin/stats'),
+  pendingShops: (page = 1, size = 10) => request.get('/api/admin/shops/pending', { params: { page, size } }),
+  reviewShop: (id, status, remark = '') =>
+    request.put(`/api/admin/shops/${id}/review`, null, { params: { status, remark } })
 }
